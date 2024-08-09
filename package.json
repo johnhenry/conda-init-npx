@@ -10,9 +10,7 @@
   "bin": {
     "conda-init": "./index.mjs"
   },
-  "scripts": {
-    "test": "node --test"
-  },
+  "scripts": {},
   "keywords": [
     "conda",
     "environment",

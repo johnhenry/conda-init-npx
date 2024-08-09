@@ -24,25 +24,28 @@ export async function fileExists(filePath) {
 export function parseArgs(args) {
   const options = {
     create: false,
-    activate: false,
+    remove: false,
+    file: false,
     envName: null,
     pythonVersion: null,
   };
 
   for (let i = 0; i < args.length; i++) {
-    switch (args[i]) {
-      case "--create":
-        options.create = true;
-        break;
-      case "--activate":
-        options.activate = true;
-        break;
-      default:
-        if (!options.envName) {
-          options.envName = args[i];
-        } else if (!options.pythonVersion) {
-          options.pythonVersion = args[i];
-        }
+    const arg = args[i];
+    if (arg.startsWith("-")) {
+      if (arg === "--create" || arg === "-c") options.create = true;
+      if (arg === "--remove" || arg === "-r") options.remove = true;
+      if (arg === "--file" || arg === "-f") options.file = true;
+      if (arg.startsWith("-") && !arg.startsWith("--")) {
+        // Handle combined short flags
+        if (arg.includes("c")) options.create = true;
+        if (arg.includes("r")) options.remove = true;
+        if (arg.includes("f")) options.file = true;
+      }
+    } else if (!options.envName) {
+      options.envName = arg;
+    } else if (!options.pythonVersion) {
+      options.pythonVersion = arg;
     }
   }
 
@@ -65,18 +68,44 @@ export function createCondaEnvironment(envFileName) {
   execSync(`conda env create -f ${envFileName}`, { stdio: "inherit" });
 }
 
-export async function main() {
-  const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout,
-  });
+export function removeCondaEnvironment(envName) {
+  execSync(`conda env remove -n ${envName}`, { stdio: "inherit" });
+}
 
-  try {
-    const options = parseArgs(process.argv.slice(2));
+export async function removeEnvironmentFile() {
+  if (await fileExists(ENVFILE_NAME)) {
+    await fs.unlink(ENVFILE_NAME);
+    console.log(`${ENVFILE_NAME} has been removed.`);
+  } else {
+    console.log(`${ENVFILE_NAME} does not exist.`);
+  }
+}
 
-    let condaEnvName = options.envName || path.basename(process.cwd());
-    let condaPythonVersion = options.pythonVersion || "3.10.14";
+// Main execution
+const rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout,
+});
 
+try {
+  const options = parseArgs(process.argv.slice(2));
+
+  let condaEnvName = options.envName || path.basename(process.cwd());
+  let condaPythonVersion = options.pythonVersion || "3.10.14";
+
+  if (options.remove) {
+    try {
+      console.log(`Removing Conda environment: ${condaEnvName}`);
+      removeCondaEnvironment(condaEnvName);
+      console.log("Conda environment removed successfully.");
+
+      if (options.file) {
+        await removeEnvironmentFile();
+      }
+    } catch (error) {
+      console.error("Failed to remove Conda environment:", error.message);
+    }
+  } else {
     condaEnvName = await getInput(rl, "Enter environment name:", condaEnvName);
     condaPythonVersion = await getInput(
       rl,
@@ -100,23 +129,16 @@ export async function main() {
         console.log("Creating Conda environment...");
         createCondaEnvironment(ENVFILE_NAME);
         console.log("Conda environment created successfully.");
+        console.log(
+          `To activate the environment, run: conda activate ${condaEnvName}`
+        );
       } catch (error) {
         console.error("Failed to create Conda environment:", error.message);
       }
     }
-
-    if (options.activate) {
-      console.log(`To activate the environment, run the following command:`);
-      console.log(`conda activate ${condaEnvName}`);
-      console.log(
-        `Note: This script cannot directly activate the environment due to Node.js process limitations.`
-      );
-    }
-  } finally {
-    rl.close();
   }
-}
-
-if (import.meta.url === `file://${process.argv[1]}`) {
-  main().catch(console.error);
+} catch (error) {
+  console.error("An error occurred:", error);
+} finally {
+  rl.close();
 }

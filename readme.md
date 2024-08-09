@@ -21,34 +21,46 @@ npm install -g conda-init
 Run the command:
 
 ```
-conda-init [env_name] [python_version] [--create] [--activate]
+conda-init [env_name] [python_version] [--create]
 ```
 
 - `env_name` (optional): The name of the Conda environment. If not provided, it will use the current directory name.
 - `python_version` (optional): The Python version to use. Default is 3.10.14.
-- `--create` (optional): Automatically create the Conda environment.
-- `--activate` (optional): Provide instructions to activate the environment.
+- `--create` (optional): Automatically create the Conda environment after generating the environment.yml file.
 
 If you don't provide the environment name or Python version, the script will prompt you for input.
 
 ## Examples
 
-1. Create a new environment with default settings:
+1. Generate an `environment.yml` file with default settings:
 
    ```
-   npx conda-init --create
+   npx conda-init
    ```
 
-2. Create a new environment with a specific name and Python version:
+2. Generate an `environment.yml` file with a specific name and Python version:
+
+   ```
+   npx conda-init myenv 3.9.7
+   ```
+
+3. Generate an `environment.yml` file and create the Conda environment:
 
    ```
    npx conda-init myenv 3.9.7 --create
    ```
 
-3. Generate an `environment.yml` file without creating the environment:
+4. Generate an `environment.yml` file with default settings and create the Conda environment:
    ```
-   npx conda-init
+   npx conda-init --create
    ```
+
+## What it does
+
+1. If not provided, prompts for environment name and Python version.
+2. Generates an `environment.yml` file in the current directory.
+3. If the `--create` flag is used, creates a Conda environment based on the generated file.
+4. Provides the command to activate the newly created environment.
 
 ## Requirements
 
