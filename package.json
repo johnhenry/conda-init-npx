@@ -1,0 +1,23 @@
+{
+  "name": "conda-init",
+  "version": "0.0.0",
+  "description": "A CLI tool to initialize Conda environments",
+  "main": "index.mjs",
+  "bin": {
+    "conda-init": "./index.mjs"
+  },
+  "scripts": {
+    "test": "node --test"
+  },
+  "keywords": [
+    "conda",
+    "environment",
+    "initialization",
+    "cli"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "engines": {
+    "node": ">=14.8.0"
+  }
+}
